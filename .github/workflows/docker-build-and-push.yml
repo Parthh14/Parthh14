@@ -1,0 +1,35 @@
+name: Build and Push to ACR
+
+on:
+  push:
+    branches:
+      - main  # Trigger on pushing to the 'main' branch
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the code from the repository
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Login to Azure Container Registry (ACR)
+      - name: Login to Azure Container Registry
+        uses: azure/docker-login@v1
+        with:
+          login-server: qhinhprd.azurecr.io
+          username: qhinhprd
+          password: yFnwBGn4Cw1baCZ
+
+      # Step 3: Build and Push Frontend Docker Image
+      - name: Build and Push Frontend Image
+        run: |
+          docker build -t qhinhprd.azurecr.io/frontend:latest ./my-app
+          docker push qhinhprd.azurecr.io/frontend:latest
+
+      # Step 4: Build and Push Backend Docker Image
+      - name: Build and Push Backend Image
+        run: |
+          docker build -t qhinhprd.azurecr.io/backend:latest ./fastapi-backend
+          docker push qhinhprd.azurecr.io/backend:latest
