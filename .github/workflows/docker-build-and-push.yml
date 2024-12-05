@@ -18,7 +18,7 @@ jobs:
         with:
           login-server: qhinhprd.azurecr.io
           username: qhinhprd
-         
+          password: ${{ secrets.ACR_PASSWORD }}  # This will use the secret you provided
 
       - name: Build and push Frontend image
         run: |
