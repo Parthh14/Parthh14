@@ -1,4 +1,4 @@
-name: Build and Push to ACR
+name: Deploy to VM and ACR
 
 on:
   push:
@@ -6,26 +6,35 @@ on:
       - main
 
 jobs:
-  build-and-push:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v2
 
       - name: Log in to Azure Container Registry
         uses: azure/docker-login@v1
         with:
           login-server: qhinhprd.azurecr.io
-          username: qhinhprd
-          password: ${{ secrets.ACR_PASSWORD }}  # This will use the secret you provided
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
 
-      - name: Build and push Frontend image
+      - name: Build and push backend image
         run: |
-          docker build -t qhinhprd.azurecr.io/frontend:latest ./my-app
-          docker push qhinhprd.azurecr.io/frontend:latest
+          docker build -t qhinhprd.azurecr.io/fastapi-backend:latest ./fastapi-backend
+          docker push qhinhprd.azurecr.io/fastapi-backend:latest
 
-      - name: Build and push Backend image
+      - name: Build and push frontend image
         run: |
-          docker build -t qhinhprd.azurecr.io/backend:latest ./fastapi-backend
-          docker push qhinhprd.azurecr.io/backend:latest
+          docker build -t qhinhprd.azurecr.io/my-app:latest ./my-app
+          docker push qhinhprd.azurecr.io/my-app:latest
+
+      - name: Deploy to VM
+        run: |
+          sshpass -p ${{ secrets.VM_PASSWORD }} ssh -o StrictHostKeyChecking=no ${{ secrets.VM_USER }}@${{ secrets.VM_IP }} "
+            docker pull qhinhprd.azurecr.io/fastapi-backend:latest &&
+            docker run -d -p 8000:8000 qhinhprd.azurecr.io/fastapi-backend:latest &&
+            docker pull qhinhprd.azurecr.io/my-app:latest &&
+            docker run -d -p 3000:3000 qhinhprd.azurecr.io/my-app:latest
+          "
