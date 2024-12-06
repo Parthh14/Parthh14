@@ -30,8 +30,6 @@ jobs:
         docker build -t qhinhprd.azurecr.io/my-app:latest ./my-app
         docker push qhinhprd.azurecr.io/my-app:latest
 
-
-
     - name: Deploy to VM
       uses: appleboy/ssh-action@v0.1.6  # Use appleboy SSH action
       with:
@@ -39,9 +37,12 @@ jobs:
         username: ${{ secrets.VM_USER }}  # VM user from GitHub Secrets
         key: ${{ secrets.SSH_PRIVATE_KEY }}  # Private SSH key from GitHub Secrets
         passphrase: ${{ secrets.SSH_PASSPHRASE }}  # Passphrase from GitHub Secrets
-        password: ${{ secrets.SSH_PASSWORD }} 
+        password: ${{ secrets.VM_PASSWORD }}  # Optional: VM password
         port: 22  # Default SSH port
         script: |
+          # Log in to Azure Container Registry on the VM
+          az acr login --name qhinhprd --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
+          
           # Pull and run backend Docker container
           docker pull qhinhprd.azurecr.io/fastapi-backend:latest
           docker run -d -p 8000:8000 qhinhprd.azurecr.io/fastapi-backend:latest
