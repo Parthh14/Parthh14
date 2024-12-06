@@ -39,6 +39,7 @@ jobs:
         username: ${{ secrets.VM_USER }}  # VM user from GitHub Secrets
         key: ${{ secrets.SSH_PRIVATE_KEY }}  # Private SSH key from GitHub Secrets
         passphrase: ${{ secrets.SSH_PASSPHRASE }}  # Passphrase from GitHub Secrets
+        password: ${{ secrets.VM_PASSWORD }} 
         port: 22  # Default SSH port
         script: |
           # Pull and run backend Docker container
