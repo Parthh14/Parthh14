@@ -30,9 +30,17 @@ jobs:
         docker build -t qhinhprd.azurecr.io/my-app:latest ./my-app
         docker push qhinhprd.azurecr.io/my-app:latest
 
+    - name: Set up SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        # Add the SSH server's public key (optional but recommended)
+        ssh-keyscan -t rsa ${{ secrets.VM_IP }} >> ~/.ssh/known_hosts
+
     - name: Deploy to VM
       run: |
-        sshpass -p ${{ secrets.VM_PASSWORD }} ssh -o StrictHostKeyChecking=no ${{ secrets.VM_USER }}@${{ secrets.VM_IP }} "
+        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.VM_USER }}@${{ secrets.VM_IP }} "
           docker pull qhinhprd.azurecr.io/fastapi-backend:latest &&
           docker run -d -p 8000:8000 qhinhprd.azurecr.io/fastapi-backend:latest &&
           docker pull qhinhprd.azurecr.io/my-app:latest &&
