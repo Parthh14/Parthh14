@@ -36,7 +36,7 @@ jobs:
       run: |
         # Create the .ssh directory and add the private key
         mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/mykey.pem  # Add the private key from GitHub secrets
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/mykey.pem  # Store the private key from GitHub secrets
         chmod 600 ~/.ssh/mykey.pem  # Set appropriate permissions for the SSH key
         # Add the VM to known hosts to avoid SSH authenticity check issues
         ssh-keyscan -H ${{ secrets.VM_IP }} >> ~/.ssh/known_hosts
