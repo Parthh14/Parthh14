@@ -3,11 +3,11 @@ name: Deploy to VM and ACR
 on:
   push:
     branches:
-      - main  # Trigger on pushes to the main branch
+      - main  # Trigger the action on pushes to the main branch
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest  # Use Ubuntu runner
+    runs-on: ubuntu-latest  # Use the Ubuntu runner
 
     steps:
     - name: Checkout code
@@ -17,38 +17,34 @@ jobs:
       uses: azure/docker-login@v1
       with:
         login-server: qhinhprd.azurecr.io  # Your ACR login server
-        username: ${{ secrets.ACR_USERNAME }}  # Username stored in GitHub secrets
-        password: ${{ secrets.ACR_PASSWORD }}  # Password stored in GitHub secrets
+        username: ${{ secrets.ACR_USERNAME }}  # Username from GitHub Secrets
+        password: ${{ secrets.ACR_PASSWORD }}  # Password from GitHub Secrets
 
     - name: Build and push backend image
       run: |
-        # Build the backend Docker image and push it to ACR
         docker build -t qhinhprd.azurecr.io/fastapi-backend:latest ./fastapi-backend
         docker push qhinhprd.azurecr.io/fastapi-backend:latest
 
     - name: Build and push frontend image
       run: |
-        # Build the frontend Docker image and push it to ACR
         docker build -t qhinhprd.azurecr.io/my-app:latest ./my-app
         docker push qhinhprd.azurecr.io/my-app:latest
 
-    - name: Set up SSH key
-      run: |
-        # Create the .ssh directory and add the private key
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/mykey.pem  # Store the private key from GitHub secrets
-        chmod 600 ~/.ssh/mykey.pem  # Set appropriate permissions for the SSH key
-        # Add the VM to known hosts to avoid SSH authenticity check issues
-        ssh-keyscan -H ${{ secrets.VM_IP }} >> ~/.ssh/known_hosts
+
 
     - name: Deploy to VM
-      run: |
-        # SSH into the VM and deploy the containers
-        ssh -o StrictHostKeyChecking=no -i ~/.ssh/mykey.pem ${{ secrets.VM_USER }}@${{ secrets.VM_IP }} "
-          # Pull the backend image and run it
-          docker pull qhinhprd.azurecr.io/fastapi-backend:latest &&
-          docker run -d -p 8000:8000 qhinhprd.azurecr.io/fastapi-backend:latest &&
-          # Pull the frontend image and run it
-          docker pull qhinhprd.azurecr.io/my-app:latest &&
+      uses: appleboy/ssh-action@v0.1.6  # Use appleboy SSH action
+      with:
+        host: ${{ secrets.VM_IP }}  # VM IP address from GitHub Secrets
+        username: ${{ secrets.VM_USER }}  # VM user from GitHub Secrets
+        key: ${{ secrets.SSH_PRIVATE_KEY }}  # Private SSH key from GitHub Secrets
+        passphrase: ${{ secrets.SSH_PASSPHRASE }}  # Passphrase from GitHub Secrets
+        port: 22  # Default SSH port
+        script: |
+          # Pull and run backend Docker container
+          docker pull qhinhprd.azurecr.io/fastapi-backend:latest
+          docker run -d -p 8000:8000 qhinhprd.azurecr.io/fastapi-backend:latest
+          
+          # Pull and run frontend Docker container
+          docker pull qhinhprd.azurecr.io/my-app:latest
           docker run -d -p 3000:3000 qhinhprd.azurecr.io/my-app:latest
-        "
