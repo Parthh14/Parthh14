@@ -24,12 +24,10 @@ jobs:
       run: |
         docker build -t qhinhprd.azurecr.io/fastapi-backend:latest ./fastapi-backend
         docker push qhinhprd.azurecr.io/fastapi-backend:latest
-
     - name: Build and push frontend image
       run: |
         docker build -t qhinhprd.azurecr.io/my-app:latest ./my-app
         docker push qhinhprd.azurecr.io/my-app:latest
-
     - name: Deploy to VM
       uses: appleboy/ssh-action@v0.1.6  # Use appleboy SSH action
       with:
