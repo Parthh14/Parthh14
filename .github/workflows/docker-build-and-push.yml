@@ -34,11 +34,11 @@ jobs:
         host: ${{ secrets.VM_IP }}  # VM IP address from GitHub Secrets
         username: ${{ secrets.VM_USER }}  # VM user from GitHub Secrets
         key: ${{ secrets.SSH_PRIVATE_KEY }}  # Private SSH key from GitHub Secrets
-        passphrase: ${{ secrets.SSH_PASSPHRASE }}  # Passphrase from GitHub Secrets
+        passphrase: "qh-adm" # Passphrase from GitHub Secrets
        
         script: |
           # Log in to Azure Container Registry on the VM
-          az acr login --name qhinhprd --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
+          #az acr login --name qhinhprd --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
           
           # Pull and run backend Docker container
           docker pull qhinhprd.azurecr.io/fastapi-backend:latest
