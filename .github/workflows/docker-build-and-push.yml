@@ -20,26 +20,28 @@ jobs:
         username: ${{ secrets.ACR_USERNAME }}  # Username from GitHub Secrets
         password: ${{ secrets.ACR_PASSWORD }}  # Password from GitHub Secrets
 
-    - name: Run SonarQube Analysis
-      run: |
-        docker run --rm \
-          -e SONAR_HOST_URL=http://74.225.172.238:9000 \
-          -e SONAR_LOGIN=sqp_651f083982e693c269499b4cc8eeacb4024fb529 \
-          -v $(pwd):/usr/src --workdir /usr/src \
-          sonarsource/sonar-scanner-cli:latest
-      env:
-        SONAR_HOST_URL: http://74.225.172.238:9000
-        SONAR_LOGIN: sqp_651f083982e693c269499b4cc8eeacb4024fb529
-
     - name: Build and push backend image
       run: |
         docker build -t qhinhprd.azurecr.io/fastapi-backend:latest ./fastapi-backend
         docker push qhinhprd.azurecr.io/fastapi-backend:latest
-
+        
     - name: Build and push frontend image
       run: |
         docker build -t qhinhprd.azurecr.io/my-app:latest ./my-app
         docker push qhinhprd.azurecr.io/my-app:latest
+        
+    - name: Run SonarQube Analysis
+      run: |
+        docker run --rm \
+          -e SONAR_HOST_URL="http://74.225.172.238:9000" \
+          -e SONAR_LOGIN="sqp_651f083982e693c269499b4cc8eeacb4024fb529" \
+          -v "$(pwd):/usr/src" \
+          sonarsource/sonar-scanner-cli:latest \
+          -Dsonar.projectKey=github-project \
+          -Dsonar.projectName=github-project \
+          -Dsonar.sources=/usr/src \
+          -Dsonar.host.url=http://74.225.172.238:9000 \
+          -Dsonar.login="sqp_651f083982e693c269499b4cc8eeacb4024fb529"
 
     - name: Deploy to VM
       uses: appleboy/ssh-action@v0.1.6  # Use appleboy SSH action
@@ -47,8 +49,7 @@ jobs:
         host: ${{ secrets.VM_IP }}  # VM IP address from GitHub Secrets
         username: ${{ secrets.VM_USER }}  # VM user from GitHub Secrets
         key: ${{ secrets.SSH_PRIVATE_KEY }}  # Private SSH key from GitHub Secrets
-        passphrase: "qh-adm" # Passphrase from GitHub Secrets
-       
+        passphrase: "qh-adm"  # Passphrase from GitHub Secrets
         script: |
           # Log in to Azure Container Registry on the VM
           #az acr login --name qhinhprd --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
