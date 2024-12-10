@@ -42,7 +42,7 @@ jobs:
           -Dsonar.sources=/usr/src \
           -Dsonar.host.url=http://74.225.172.238:9000 \
           -Dsonar.login="sqp_651f083982e693c269499b4cc8eeacb4024fb529"
-
+          
     - name: Deploy to VM
       uses: appleboy/ssh-action@v0.1.6  # Use appleboy SSH action
       with:
@@ -54,10 +54,10 @@ jobs:
           # Log in to Azure Container Registry on the VM
           #az acr login --name qhinhprd --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
           
-          # Pull and run backend Docker container
+          # Pull and run backend Docker container on a different port (e.g., 5001)
           docker pull qhinhprd.azurecr.io/fastapi-backend:latest
-          docker run -d -p 5000:8000 qhinhprd.azurecr.io/fastapi-backend:latest
+          docker run -d -p 5001:8000 qhinhprd.azurecr.io/fastapi-backend:latest
           
-          # Pull and run frontend Docker container
+          # Pull and run frontend Docker container on a different port (e.g., 6001)
           docker pull qhinhprd.azurecr.io/my-app:latest
-          docker run -d -p 6000:3000 qhinhprd.azurecr.io/my-app:latest
+          docker run -d -p 6001:3000 qhinhprd.azurecr.io/my-app:latest
